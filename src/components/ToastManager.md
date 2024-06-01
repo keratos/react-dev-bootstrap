@@ -10,23 +10,21 @@ Here is an example of how to use the `ToastManager` component:
 ### ToastManager.jsx
 
 ```jsx
-import { useState, useEffect } from 'react';
-import { Toast, ToastContainer, Button } from 'react-bootstrap';
+import { useEffect, useState } from 'react';
+import { Toast, ToastContainer } from 'react-bootstrap';
 import PropTypes from 'prop-types';
 import AudioPlayer from './AudioPlayer';
 
 const ToastManager = ({
-                          initialToasts,
-                          position,
-                          delay,
-                          autohide,
-                          buttonText,
-                          buttonVariant,
-                          customClass,
-                          customStyle,
-                          openSound
-                      }) => {
-    const [toasts, setToasts] = useState(initialToasts);
+    toasts,
+    removeToast,
+    position,
+    delay,
+    autohide,
+    customClass,
+    customStyle,
+    openSound
+}) => {
     const [playSound, setPlaySound] = useState(false);
 
     useEffect(() => {
@@ -35,14 +33,11 @@ const ToastManager = ({
         }
     }, [playSound]);
 
-    const addToast = (message, variant = 'info') => {
-        setToasts([...toasts, { message, variant, id: Date.now() }]);
-        setPlaySound(true);
-    };
-
-    const removeToast = (id) => {
-        setToasts(toasts.filter(toast => toast.id !== id));
-    };
+    useEffect(() => {
+        if (toasts.length > 0) {
+            setPlaySound(true);
+        }
+    }, [toasts]);
 
     return (
         <div className={customClass} style={customStyle}>
@@ -60,37 +55,31 @@ const ToastManager = ({
                     </Toast>
                 ))}
             </ToastContainer>
-            <Button variant={buttonVariant} onClick={() => addToast('This is a toast message!', 'success')}>
-                {buttonText}
-            </Button>
         </div>
     );
 };
 
 ToastManager.propTypes = {
-    initialToasts: PropTypes.arrayOf(
+    toasts: PropTypes.arrayOf(
         PropTypes.shape({
+            id: PropTypes.number.isRequired,
             message: PropTypes.string.isRequired,
             variant: PropTypes.string
         })
-    ),
+    ).isRequired,
+    removeToast: PropTypes.func.isRequired,
     position: PropTypes.string,
     delay: PropTypes.number,
     autohide: PropTypes.bool,
-    buttonText: PropTypes.string,
-    buttonVariant: PropTypes.string,
     customClass: PropTypes.string,
     customStyle: PropTypes.object,
     openSound: PropTypes.string
 };
 
 ToastManager.defaultProps = {
-    initialToasts: [],
     position: 'top-end',
     delay: 3000,
     autohide: true,
-    buttonText: 'Show Toast',
-    buttonVariant: 'primary',
     customClass: '',
     customStyle: {},
     openSound: null
@@ -103,50 +92,92 @@ export default ToastManager;
 
 | Prop         | Type                               | Default  | Description                                           |
 |--------------|------------------------------------|----------|-------------------------------------------------------|
-| initialToasts| arrayOf(shape({                    | []       | Initial list of toasts                                |
+| toasts       | arrayOf(shape({                    | []       | List of toasts to display                             |
+| id           | number.isRequired,                 |          | Unique identifier for each toast                      |
 | message      | string.isRequired,                 |          | Message to display in the toast                       |
 | variant      | string                             |          | Variant of the toast (e.g., 'success', 'info')        |
+| removeToast  | func.isRequired                    | -        | Function to remove a toast                            |
 | position     | string                             | 'top-end'| Position of the toast container                       |
 | delay        | number                             | 3000     | Delay before the toast disappears automatically       |
 | autohide     | bool                               | true     | Whether the toast should disappear automatically      |
-| buttonText   | string                             | 'Show Toast'| Text for the button that shows the toast              |
-| buttonVariant| string                             | 'primary'| Bootstrap variant for the button                      |
 | customClass  | string                             | ''       | Custom CSS class for the toast container              |
 | customStyle  | object                             | {}       | Custom styles for the toast container                 |
 | openSound    | string                             | null     | Path to the sound file to play when the toast appears |
 
 ## Example Implementation
 
-### ExampleComponent.jsx
+### Home.jsx
 
 ```jsx
-import React, { useState } from 'react';
-import ToastManager from './ToastManager';
+import { useState } from 'react';
 import { Button } from 'react-bootstrap';
+import PanelWithList from '../components/PanelWithList';
+import PanelWithForm from '../components/PanelWithForm';
+import CustomModal from '../components/CustomModal';
+import Layout from '../components/Layout';
+import ToastManager from '../components/ToastManager';
 
-const ExampleComponent = () => {
-    const initialToasts = [
-        { message: 'Welcome to the site!', variant: 'info' }
-    ];
+const Home = () => {
+    const items = ['Item 1', 'Item 2', 'Item 3'];
+    const [showModal, setShowModal] = useState(false);
+    const [toasts, setToasts] = useState([
+        { id: Date.now(), message: 'Welcome to the site!', variant: 'info' }
+    ]);
+
+    const handleShow = () => setShowModal(true);
+    const handleClose = () => setShowModal(false);
+
+    const handleSubmit = (event) => {
+        event.preventDefault();
+    };
+
+    const addToast = (message, variant = 'info') => {
+        setToasts([...toasts, { id: Date.now(), message, variant }]);
+    };
+
+    const removeToast = (id) => {
+        setToasts(toasts.filter(toast => toast.id !== id));
+    };
 
     return (
-        <div>
+        <Layout>
+            <h1>Home Page</h1>
+            <PanelWithList title="List Panel" items={items} />
+            <PanelWithForm title="Form Panel" onSubmit={handleSubmit} />
+            <Button variant="primary" onClick={handleShow}>
+                Open Modal
+            </Button>
+            <CustomModal
+                show={showModal}
+                handleClose={handleClose}
+                title="Example Modal"
+                size="lg"
+                backdrop="static"
+                centered
+                customClass="custom-modal-class"
+                customStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.8)', borderRadius: '15px' }}
+                openSound="audio/modal.mp3"
+            >
+                <p>This is the content of the modal</p>
+            </CustomModal>
+            <Button variant="success" onClick={() => addToast('This is a toast message!', 'success')}>
+                Show Custom Toast
+            </Button>
             <ToastManager
-                initialToasts={initialToasts}
+                toasts={toasts}
+                removeToast={removeToast}
                 position="top-end"
                 delay={5000}
                 autohide={true}
-                buttonText="Show Custom Toast"
-                buttonVariant="success"
                 customClass="my-toast-container"
                 customStyle={{ zIndex: 1050 }}
-                openSound="/path/to/your/toast-sound.mp3"
+                openSound="audio/toast.mp3"
             />
-        </div>
+        </Layout>
     );
 };
 
-export default ExampleComponent;
+export default Home;
 ```
 
 ## License

@@ -4,11 +4,14 @@ import PanelWithList from '../components/PanelWithList';
 import PanelWithForm from '../components/PanelWithForm';
 import CustomModal from '../components/CustomModal';
 import Layout from '../components/Layout';
-import ToastManager from "../components/ToastManager.jsx";
+import ToastManager from '../components/ToastManager';
 
 const Home = () => {
     const items = ['Item 1', 'Item 2', 'Item 3'];
     const [showModal, setShowModal] = useState(false);
+    const [toasts, setToasts] = useState([
+        { id: Date.now(), message: 'Welcome to the site!', variant: 'info' }
+    ]);
 
     const handleShow = () => setShowModal(true);
     const handleClose = () => setShowModal(false);
@@ -17,9 +20,13 @@ const Home = () => {
         event.preventDefault();
     };
 
-    const initialToasts = [
-        { message: 'Welcome to the site!', variant: 'info' }
-    ];
+    const addToast = (message, variant = 'info') => {
+        setToasts([...toasts, { id: Date.now(), message, variant }]);
+    };
+
+    const removeToast = (id) => {
+        setToasts(toasts.filter(toast => toast.id !== id));
+    };
 
     return (
         <Layout>
@@ -42,16 +49,18 @@ const Home = () => {
             >
                 <p>This is the content of the modal</p>
             </CustomModal>
+            <Button variant="success" onClick={() => addToast('This is a toast message!', 'success')}>
+                Show Custom Toast
+            </Button>
             <ToastManager
-                initialToasts={initialToasts}
+                toasts={toasts}
+                removeToast={removeToast}
                 position="top-end"
                 delay={5000}
                 autohide={true}
-                buttonText="Show Custom Toast"
-                buttonVariant="success"
                 customClass="my-toast-container"
                 customStyle={{ zIndex: 1050 }}
-                openSound="audio/modal.mp3"
+                openSound="audio/toast.mp3"
             />
         </Layout>
     );

@@ -1,20 +1,18 @@
-import { useState, useEffect } from 'react';
-import { Toast, ToastContainer, Button } from 'react-bootstrap';
+import { useEffect, useState } from 'react';
+import { Toast, ToastContainer } from 'react-bootstrap';
 import PropTypes from 'prop-types';
 import AudioPlayer from './AudioPlayer';
 
 const ToastManager = ({
-                          initialToasts,
+                          toasts,
+                          removeToast,
                           position,
                           delay,
                           autohide,
-                          buttonText,
-                          buttonVariant,
                           customClass,
                           customStyle,
                           openSound
                       }) => {
-    const [toasts, setToasts] = useState(initialToasts);
     const [playSound, setPlaySound] = useState(false);
 
     useEffect(() => {
@@ -23,14 +21,11 @@ const ToastManager = ({
         }
     }, [playSound]);
 
-    const addToast = (message, variant = 'info') => {
-        setToasts([...toasts, { message, variant, id: Date.now() }]);
-        setPlaySound(true);
-    };
-
-    const removeToast = (id) => {
-        setToasts(toasts.filter(toast => toast.id !== id));
-    };
+    useEffect(() => {
+        if (toasts.length > 0) {
+            setPlaySound(true);
+        }
+    }, [toasts]);
 
     return (
         <div className={customClass} style={customStyle}>
@@ -48,37 +43,31 @@ const ToastManager = ({
                     </Toast>
                 ))}
             </ToastContainer>
-            <Button variant={buttonVariant} onClick={() => addToast('This is a toast message!', 'success')}>
-                {buttonText}
-            </Button>
         </div>
     );
 };
 
 ToastManager.propTypes = {
-    initialToasts: PropTypes.arrayOf(
+    toasts: PropTypes.arrayOf(
         PropTypes.shape({
+            id: PropTypes.number.isRequired,
             message: PropTypes.string.isRequired,
             variant: PropTypes.string
         })
-    ),
+    ).isRequired,
+    removeToast: PropTypes.func.isRequired,
     position: PropTypes.string,
     delay: PropTypes.number,
     autohide: PropTypes.bool,
-    buttonText: PropTypes.string,
-    buttonVariant: PropTypes.string,
     customClass: PropTypes.string,
     customStyle: PropTypes.object,
     openSound: PropTypes.string
 };
 
 ToastManager.defaultProps = {
-    initialToasts: [],
     position: 'top-end',
     delay: 3000,
     autohide: true,
-    buttonText: 'Show Toast',
-    buttonVariant: 'primary',
     customClass: '',
     customStyle: {},
     openSound: null
