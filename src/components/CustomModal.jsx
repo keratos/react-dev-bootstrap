@@ -1,38 +1,56 @@
-import { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Modal, Button } from 'react-bootstrap';
 import PropTypes from 'prop-types';
+import AudioPlayer from './AudioPlayer';
 
-const CustomModal = (props) => {
+const CustomModal = ({
+                         show,
+                         handleClose,
+                         title,
+                         children,
+                         size,
+                         backdrop,
+                         centered,
+                         customClass,
+                         customStyle,
+                         openSound
+                     }) => {
+    const [playSound, setPlaySound] = useState(false);
+
     useEffect(() => {
-        if (props.show && props.openSound) {
-            const audio = new Audio(props.openSound);
-            audio.play();
+        if (show) {
+            setPlaySound(true);
+        } else {
+            setPlaySound(false); // Reset the play state when the modal is closed
         }
-    }, [props.show, props.openSound]);
+    }, [show]);
 
     return (
-        <Modal
-            show={props.show}
-            onHide={props.handleClose}
-            size={props.size}
-            backdrop={props.backdrop}
-            centered={props.centered}
-            className={props.customClass}
-            style={props.customStyle}
-        >
-            <Modal.Header closeButton>
-                <Modal.Title>{props.title}</Modal.Title>
-            </Modal.Header>
-            <Modal.Body>{props.children}</Modal.Body>
-            <Modal.Footer>
-                <Button variant="secondary" onClick={props.handleClose}>
-                    Close
-                </Button>
-                <Button variant="primary" onClick={props.handleClose}>
-                    Save Changes
-                </Button>
-            </Modal.Footer>
-        </Modal>
+        <>
+            <AudioPlayer soundUrl={openSound} play={playSound} />
+            <Modal
+                show={show}
+                onHide={handleClose}
+                size={size}
+                backdrop={backdrop}
+                centered={centered}
+                className={customClass}
+                style={customStyle}
+            >
+                <Modal.Header closeButton>
+                    <Modal.Title>{title}</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>{children}</Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={handleClose}>
+                        Close
+                    </Button>
+                    <Button variant="primary" onClick={handleClose}>
+                        Save Changes
+                    </Button>
+                </Modal.Footer>
+            </Modal>
+        </>
     );
 };
 

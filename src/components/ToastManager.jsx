@@ -1,16 +1,31 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Toast, ToastContainer, Button } from 'react-bootstrap';
 import PropTypes from 'prop-types';
+import AudioPlayer from './AudioPlayer';
 
-const ToastManager = (props) => {
-    const [toasts, setToasts] = useState(props.initialToasts);
+const ToastManager = ({
+                          initialToasts,
+                          position,
+                          delay,
+                          autohide,
+                          buttonText,
+                          buttonVariant,
+                          customClass,
+                          customStyle,
+                          openSound
+                      }) => {
+    const [toasts, setToasts] = useState(initialToasts);
+    const [playSound, setPlaySound] = useState(false);
+
+    useEffect(() => {
+        if (playSound) {
+            setPlaySound(false); // Reset the play state after playing the sound
+        }
+    }, [playSound]);
 
     const addToast = (message, variant = 'info') => {
         setToasts([...toasts, { message, variant, id: Date.now() }]);
-        if (props.openSound) {
-            const audio = new Audio(props.openSound);
-            audio.play();
-        }
+        setPlaySound(true);
     };
 
     const removeToast = (id) => {
@@ -18,22 +33,23 @@ const ToastManager = (props) => {
     };
 
     return (
-        <div className={props.customClass} style={props.customStyle}>
-            <ToastContainer position={props.position} className="p-3">
+        <div className={customClass} style={customStyle}>
+            <AudioPlayer soundUrl={openSound} play={playSound} />
+            <ToastContainer position={position} className="p-3">
                 {toasts.map((toast) => (
                     <Toast
                         key={toast.id}
                         onClose={() => removeToast(toast.id)}
                         bg={toast.variant}
-                        delay={props.delay}
-                        autohide={props.autohide}
+                        delay={delay}
+                        autohide={autohide}
                     >
                         <Toast.Body>{toast.message}</Toast.Body>
                     </Toast>
                 ))}
             </ToastContainer>
-            <Button variant={props.buttonVariant} onClick={() => addToast('This is a toast message!', 'success')}>
-                {props.buttonText}
+            <Button variant={buttonVariant} onClick={() => addToast('This is a toast message!', 'success')}>
+                {buttonText}
             </Button>
         </div>
     );
